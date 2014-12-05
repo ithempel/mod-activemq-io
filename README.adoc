@@ -1,0 +1,94 @@
+= Vert.x Module for Apache ActiveMQ Message Broker
+:icons: font
+:source-highlighter: Pygments pygments
+Sebastian Hempel <shempel@it-hempel.de>
+
+This module allows communication between Vert.x and the Apache ActiveMQ message broker. The module acts as a bridge between the internal event bus of Vert.x and ActiveMQ. It uses the ActiveMQ client library and exchanges "`native`" JMS messages.
+
+NOTE: The module is in an early state. But the main functionality - sending and receiving message - should work.
+
+== Installation / Deployment
+
+To use the module you have to deploy it in your Vert.x application.
+
+[source,java]
+----
+container.deployModule("de.it-hempel.vertx~module-activemq-io~0.1.0");
+----
+
+The module can be configured with the following entries in the configuration Json.
+
+|===
+| Parameter | Type | Description
+
+| `host` | `String` | The IP address / network name fo the ActiveMQ broker. (default: `localhost`)
+| `port` | `int` | Port number of the ActiveMQ broker to connect to. (default: `61616`)
+| `address` | `String` | The address of the ActiveMQ Vert.x module on the internal event bus. (default: `vertx.mod-activemq-io`)
+|===
+
+[source,java]
+----
+JsonObject config = new JsonObject();
+config.putString("host", "example.broker");
+config.putInt("port", 61616);
+
+container.deployModule("de.it-hempel.vertx~module-activemq-io~0.1.0", config);
+----
+
+== Usage
+
+You can send and receive message from the message broker.
+
+=== Send a Message
+
+To send a message you send a `JsonObject` with the following structure to the `vertx.mod-activemq-io` module:
+
+|===
+| Field | Type | Description
+
+| `command` | `String` | The command of the Vert.x module to be executed. With `send` the module will send the content of the field `body` as a ActiveMQ / JMS message.
+| `destination` | `String` | Address of the ActiveMQ queue to which the JMS message should be send.
+| `body` | `String` | The content of the JMS message to be send. When the field is of type `String` a `TextMessage` will be send.
+|===
+
+Example: Send a `TextMessage` to the JMS queue `TOQUEUE`.
+
+[source,java]
+----
+EventBus eb = vertx.eventBus();
+String busAddress = "vertx.mod-activemq-io";
+
+JsonObject message = new JsonObject();
+message.putString("command", "send");
+message.putString("destination", "TOQUEUE");
+message.putString("body", "Hello World!");
+eb.send(busAddress, message);
+----
+
+=== Receive Messages
+
+You can subscribe your verticle to receive messages from the MessageBroker. To subscribe you have to send a `JsonObject` to the `vertx.mod-activemq-io` module.
+
+|===
+| Field | Type | Description
+
+| `command` | `String` | The command of the Vert.x module to be executed. With `subscribe` the module will be subscribed for message receive by the given `destination`.
+| `destination` | `String` | Address of the ActiveMQ queue from which JMS message should be received.
+| `subscriber-address` | `String` | The address on the Vert.x event bus, to which the received JMS message should be delievered.
+|===
+
+Example: Subscribe to receive message from the JSM queue `FROMQUEUE`.
+
+[source,java]
+----
+EventBus eb = vertx.eventBus();
+String busAddress = "vertx.mod-activemq-io";
+String myAddress = "my-vertx-address";
+
+JsonObject message = new JsonObject();
+message.putString("command", "subscribe");
+message.putString("destination", "FROMQUEUE");
+message.putString("subscriber-address", myAddress);
+eb.send(busAddress, message);
+----
+

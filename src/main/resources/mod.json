@@ -1,0 +1,12 @@
+{
+  "main": "de.ithempel.vertx.mods.activemq.ActiveMqBusMod",
+
+  "description": "Vert.x module to communicate with ActiveMQ / JMS",
+  "licenses": ["The Apache Software License Version 2.0"],
+  "author": "Sebastian Hempel",
+
+  "keywords": ["activemq", "jms", "io"],
+  "homepage": "url to your project page",
+
+  "auto-redeploy": true
+}
